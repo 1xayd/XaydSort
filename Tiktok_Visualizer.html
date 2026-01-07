@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XaydSort Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(30, 30, 46, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #a0a0c0;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        label {
+            color: #b0b0d0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #a0a0c0;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 100%;
+            gap: 2px;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.1s ease;
+            border-radius: 4px 4px 0 0;
+            box-shadow: 0 -2px 10px rgba(102, 126, 234, 0.3);
+            position: relative;
+        }
+
+        .bar.comparing {
+            background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 -2px 15px rgba(245, 87, 108, 0.5);
+            transform: scaleY(1.05);
+        }
+
+        .bar.swapping {
+            background: linear-gradient(180deg, #ffa726 0%, #fb8c00 100%);
+            box-shadow: 0 -2px 15px rgba(255, 167, 38, 0.5);
+            transform: scaleY(1.1);
+        }
+
+        .bar.special {
+            background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+            box-shadow: 0 -2px 15px rgba(74, 222, 128, 0.5);
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #b0b0d0;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 15px;
+            border-radius: 3px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .legend-color.normal {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .legend-color.compare {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .legend-color.swap {
+            background: linear-gradient(90deg, #ffa726 0%, #fb8c00 100%);
+        }
+
+        .legend-color.special {
+            background: linear-gradient(90deg, #4ade80 0%, #16a34a 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XaydSort Visualizer</h1>
+        <p class="subtitle">Hybrid quicksort with median-of-three pivot selection and exponential search insertion sort</p>
+        
+        <div class="controls">
+            <button id="start-btn">Start Sort</button>
+            <button id="reset-btn">Generate New Array</button>
+            
+            <div class="input-group">
+                <label for="size-slider">Size:</label>
+                <input type="range" id="size-slider" min="10" max="200" value="80">
+                <span id="size-value">80</span>
+            </div>
+            
+            <div class="input-group">
+                <label for="speed-slider">Speed:</label>
+                <input type="range" id="speed-slider" min="1" max="100" value="50">
+                <span id="speed-value">50</span>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Comparisons</div>
+                <div class="stat-value" id="comparisons">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Swaps</div>
+                <div class="stat-value" id="swaps">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Array Size</div>
+                <div class="stat-value" id="array-size">80</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Status</div>
+                <div class="stat-value" id="status">Ready</div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="bar-container" id="bar-container"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color normal"></div>
+                <span>Normal</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color compare"></div>
+                <span>Comparing</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color swap"></div>
+                <span>Swapping</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color special"></div>
+                <span>Insertion Key</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // XaydSort class (your provided code)
+        class XaydSort {
+            constructor(arr, visualizer = null) {
+                this.arr = arr;
+                this.visualizer = visualizer;
+            }
+
+            async sort() {
+                if (this.arr.length <= 1) {
+                    return;
+                }
+                await this.xaydSortRecursive(0, this.arr.length - 1);
+            }
+
+            async xaydSortRecursive(low, high) {
+                if (high - low < 40) {
+                    await this.xaydSortInsert(low, high);
+                    return;
+                }
+
+                const pivotIdx = await this.xaydPartition(low, high);
+
+                await this.xaydSortRecursive(low, pivotIdx - 1);
+                await this.xaydSortRecursive(pivotIdx + 1, high);
+            }
+
+            async xaydPartition(low, high) {
+                const mid = low + Math.floor((high - low) / 2);
+
+                await this.compare(mid, low);
+                if (this.arr[mid] < this.arr[low]) {
+                    await this.swap(low, mid);
+                }
+                
+                await this.compare(high, low);
+                if (this.arr[high] < this.arr[low]) {
+                    await this.swap(low, high);
+                }
+                
+                await this.compare(mid, high);
+                if (this.arr[mid] < this.arr[high]) {
+                    await this.swap(mid, high);
+                }
+
+                const pivot = this.arr[high];
+                let i = low - 1;
+
+                for (let j = low; j < high; j++) {
+                    await this.compare(j, high);
+                    if (this.arr[j] <= pivot) {
+                        i++;
+                        if (i !== j) {
+                            await this.swap(i, j);
+                        }
+                    }
+                }
+
+                await this.swap(i + 1, high);
+                return i + 1;
+            }
+
+            async xaydSortInsert(low, high) {
+                for (let i = low + 1; i <= high; i++) {
+                    const key = this.arr[i];
+                    await this.markSpecial(i);
+
+                    const pos = await this.exponentialSearch(low, i - 1, key);
+
+                    if (pos !== i) {
+                        for (let k = i; k > pos; k--) {
+                            this.arr[k] = this.arr[k - 1];
+                            await this.updateVisualizer();
+                        }
+                        this.arr[pos] = key;
+                        await this.updateVisualizer();
+                    }
+                }
+            }
+
+            async exponentialSearch(left, right, key) {
+                if (right < left || key <= this.arr[left]) {
+                    return left;
+                }
+                if (key > this.arr[right]) {
+                    return right + 1;
+                }
+
+                let bound = 1;
+                while (left + bound <= right && this.arr[left + bound] < key) {
+                    await this.compare(left + bound, -1, key);
+                    bound <<= 1;
+                }
+
+                const start = left + (bound >> 1);
+                const end = left + bound <= right ? left + bound : right;
+
+                return await this.binarySearchInsertPos(start, end, key);
+            }
+
+            async binarySearchInsertPos(left, right, key) {
+                while (left <= right) {
+                    const mid = left + Math.floor((right - left) / 2);
+                    await this.compare(mid, -1, key);
+
+                    if (this.arr[mid] < key) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+                return left;
+            }
+
+            async compare(idx1, idx2, value = null) {
+                if (this.visualizer) {
+                    await this.visualizer.compare(idx1, idx2, value);
+                }
+            }
+
+            async swap(idx1, idx2) {
+                if (this.visualizer) {
+                    await this.visualizer.swap(idx1, idx2);
+                }
+                [this.arr[idx1], this.arr[idx2]] = [this.arr[idx2], this.arr[idx1]];
+            }
+
+            async markSpecial(idx) {
+                if (this.visualizer) {
+                    await this.visualizer.markSpecial(idx);
+                }
+            }
+
+            async updateVisualizer() {
+                if (this.visualizer) {
+                    await this.visualizer.update();
+                }
+            }
+        }
+
+        // Visualizer implementation
+        class SortVisualizer {
+            constructor(array) {
+                this.array = array;
+                this.barContainer = document.getElementById('bar-container');
+                this.comparisons = 0;
+                this.swaps = 0;
+                this.delay = 50;
+                this.bars = [];
+                this.createBars();
+                this.updateStats();
+            }
+
+            createBars() {
+                this.barContainer.innerHTML = '';
+                this.bars = [];
+                const maxValue = Math.max(...this.array);
+                
+                this.array.forEach((value, index) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'bar';
+                    const height = (value / maxValue) * 100;
+                    bar.style.height = `${height}%`;
+                    this.barContainer.appendChild(bar);
+                    this.bars.push(bar);
+                });
+            }
+
+            async compare(idx1, idx2, value = null) {
+                this.comparisons++;
+                this.updateStats();
+                
+                if (idx1 >= 0 && idx1 < this.bars.length) {
+                    this.bars[idx1].classList.add('comparing');
+                }
+                if (idx2 >= 0 && idx2 < this.bars.length) {
+                    this.bars[idx2].classList.add('comparing');
+                }
+                
+                await this.sleep(this.delay);
+                
+                if (idx1 >= 0 && idx1 < this.bars.length) {
+                    this.bars[idx1].classList.remove('comparing');
+                }
+                if (idx2 >= 0 && idx2 < this.bars.length) {
+                    this.bars[idx2].classList.remove('comparing');
+                }
+            }
+
+            async swap(idx1, idx2) {
+                this.swaps++;
+                this.updateStats();
+                
+                this.bars[idx1].classList.add('swapping');
+                this.bars[idx2].classList.add('swapping');
+                
+                await this.sleep(this.delay * 1.5);
+                
+                const maxValue = Math.max(...this.array);
+                this.bars[idx1].style.height = `${(this.array[idx1] / maxValue) * 100}%`;
+                this.bars[idx2].style.height = `${(this.array[idx2] / maxValue) * 100}%`;
+                
+                await this.sleep(this.delay);
+                
+                this.bars[idx1].classList.remove('swapping');
+                this.bars[idx2].classList.remove('swapping');
+            }
+
+            async markSpecial(idx) {
+                if (idx >= 0 && idx < this.bars.length) {
+                    this.bars[idx].classList.add('special');
+                    await this.sleep(this.delay * 0.5);
+                    this.bars[idx].classList.remove('special');
+                }
+            }
+
+            async update() {
+                const maxValue = Math.max(...this.array);
+                this.array.forEach((value, index) => {
+                    this.bars[index].style.height = `${(value / maxValue) * 100}%`;
+                });
+                await this.sleep(this.delay * 0.3);
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            updateStats() {
+                document.getElementById('comparisons').textContent = this.comparisons;
+                document.getElementById('swaps').textContent = this.swaps;
+            }
+
+            setDelay(speed) {
+                this.delay = 101 - speed;
+            }
+        }
+
+        // UI Controller
+        let currentArray = [];
+        let visualizer = null;
+        let isSorting = false;
+
+        function generateArray(size) {
+            const arr = [];
+            for (let i = 0; i < size; i++) {
+                arr.push(Math.floor(Math.random() * 100) + 1);
+            }
+            return arr;
+        }
+
+        function initializeArray() {
+            const size = parseInt(document.getElementById('size-slider').value);
+            currentArray = generateArray(size);
+            visualizer = new SortVisualizer(currentArray);
+            document.getElementById('array-size').textContent = size;
+            document.getElementById('status').textContent = 'Ready';
+            isSorting = false;
+        }
+
+        async function startSort() {
+            if (isSorting) return;
+            
+            isSorting = true;
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('reset-btn').disabled = true;
+            document.getElementById('size-slider').disabled = true;
+            document.getElementById('status').textContent = 'Sorting...';
+            
+            const sorter = new XaydSort(currentArray, visualizer);
+            await sorter.sort();
+            
+            document.getElementById('status').textContent = 'Sorted!';
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('reset-btn').disabled = false;
+            document.getElementById('size-slider').disabled = false;
+            isSorting = false;
+        }
+
+        // Event Listeners
+        document.getElementById('start-btn').addEventListener('click', startSort);
+        document.getElementById('reset-btn').addEventListener('click', initializeArray);
+
+        document.getElementById('size-slider').addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('size-value').textContent = value;
+            if (!isSorting) {
+                initializeArray();
+            }
+        });
+
+        document.getElementById('speed-slider').addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('speed-value').textContent = value;
+            if (visualizer) {
+                visualizer.setDelay(parseInt(value));
+            }
+        });
+
+        // Initialize on load
+        initializeArray();
+    </script>
+</body>
+</html>
