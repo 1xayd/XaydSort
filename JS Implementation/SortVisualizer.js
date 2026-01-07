@@ -62,13 +62,13 @@ async function xaydSortInsert(elements, low, high) {
             // Shift elements to the right
             for (let k = i; k > pos; k--) {
                 elements[k] = elements[k - 1];
-                await updateBox(elements, k);
             }
 
             // Insert the element at the correct position
             elements[pos] = temp;
-            await updateBox(elements, pos);
         }
+		
+        await updateBox(elements, pos);
     }
 }
 
